@@ -1,15 +1,9 @@
-name: Generated
-
-env:
-  # The name of the main module repository
-  main_project_module: Max
-
-  # The name of the Play Store
-  playstore_name: Max
+name: Java CI with Gradle
 
 on:
-
   push:
+    branches: [ "Max" ]
+  pull_request:
     branches: [ "Max" ]
       - 'release/**'
 
