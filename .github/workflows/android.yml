@@ -34,15 +34,15 @@ jobs:
         id: create_release
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.TKT }}
           script: |
-            const github = require('@actions/github');
-            const core = require('@actions/core');
+            const { context, github, core } = require('@actions/github');
 
-            const octokit = github.getOctokit(process.env.TKT);
+            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
 
             const { data: release } = await octokit.rest.repos.createRelease({
-              owner: github.context.repo.owner,
-              repo: github.context.repo.repo,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               tag_name: `v${{ github.run_number }}`,
               name: `${{ env.RELEASE_TITLE }} - v${{ github.run_number }}`,
               draft: false,
@@ -50,19 +50,18 @@ jobs:
             });
 
             core.setOutput('upload_url', release.upload_url);
-        env:
-          TKT: ${{ secrets.TKT }}
 
       - name: Upload APK to Release
+        id: upload_release_asset
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.TKT }}
           script: |
-            const github = require('@actions/github');
-            const core = require('@actions/core');
+            const { context, github, core } = require('@actions/github');
             const fs = require('fs');
             const path = require('path');
 
-            const octokit = github.getOctokit(process.env.TKT);
+            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
 
             const upload_url = core.getInput('upload_url', { required: true });
             const apkPath = path.join(process.env.PROJECT_MODULE, 'build/outputs/apk/release/app-release.apk');
@@ -77,6 +76,7 @@ jobs:
               name: 'app-release.apk',
               data: content,
             });
+
         env:
           TKT: ${{ secrets.TKT }}
           PROJECT_MODULE: ${{ env.PROJECT_MODULE }}
