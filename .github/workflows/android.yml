@@ -28,44 +28,55 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build APK Release
-        run: ./gradlew :${{ env.PROJECT_MODULE }}:assembleRelease
+        run: ./gradlew :${{ "app" }}:assembleRelease
 
       - name: Create GitHub Release
         id: create_release
         uses: actions/github-script@v6
         with:
           script: |
-            const { data: release } = await github.repos.createRelease({
+            const { Octokit } = require("@octokit/rest");
+            const octokit = new Octokit({
+              auth: process.env.TKT,
+            });
+
+            const release = await octokit.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: `v${{ github.run_number }}`,
-              name: `${{ env.RELEASE_TITLE }} - v${{ github.run_number }}`,
+              name: `${{ "new" }} - v${{ github.run_number }}`,
               draft: false,
               prerelease: false,
-              token: process.env.TKT,
             });
-            core.setOutput('upload_url', release.upload_url);
+
+            core.setOutput('upload_url', release.data.upload_url);
+        env:
+          TKT: ${{ secrets.TKT }}
 
       - name: Upload APK to Release
         uses: actions/github-script@v6
         with:
           script: |
+            const { Octokit } = require("@octokit/rest");
+            const octokit = new Octokit({
+              auth: process.env.TKT,
+            });
+
             const fs = require('fs');
             const path = require('path');
             const upload_url = core.getInput('upload_url', { required: true });
             const apkPath = path.join(process.env.PROJECT_MODULE, 'build/outputs/apk/release/app-release.apk');
             const content = fs.readFileSync(apkPath);
-            const headers = {
-              'content-length': content.length,
-              'content-type': 'application/vnd.android.package-archive'
-            };
 
-            await github.repos.uploadReleaseAsset({
+            await octokit.repos.uploadReleaseAsset({
               url: upload_url,
-              headers,
+              headers: {
+                'content-length': content.length,
+                'content-type': 'application/vnd.android.package-archive',
+              },
               name: 'app-release.apk',
               file: content,
-              token: process.env.TKT,
             });
         env:
-          PROJECT_MODULE: ${{ env.PROJECT_MODULE }}
+          TKT: ${{ secrets.TKT }}
+          PROJECT_MODULE: ${{ "app" }}
