@@ -41,8 +41,8 @@ jobs:
             const octokit = github.getOctokit(process.env.TKT);
 
             const { data: release } = await octokit.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner: github.context.repo.owner,
+              repo: github.context.repo.repo,
               tag_name: `v${{ github.run_number }}`,
               name: `${{ env.RELEASE_TITLE }} - v${{ github.run_number }}`,
               draft: false,
