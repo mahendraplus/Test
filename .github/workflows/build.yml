@@ -1,0 +1,23 @@
+name: Java CI with Gradle
+on:
+ push:
+   branches: ["Max"]
+ pull_request:
+   branches: ["Max"]
+
+jobs:
+ build:
+   runs-on: ubuntu-latest
+   steps:
+     – name: Checkout
+       uses: actions/checkout@v4
+     – name: Setup JDK
+       uses: actions/setup-java@v4
+       with:
+         distribution: ‘zulu’
+         java-version: ’11’
+         cache: 'gradle'
+     – name: Set execution flag for gradlew
+       run: chmod +x gradlew
+     – name: Build with Gradle
+       run: ./gradlew build
