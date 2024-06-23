@@ -1,52 +1,17 @@
-name: Build and Publish APK
+name: Android CI
+on: [push, pull_request]
 
-env:
-  PROJECT_MODULE: app
-  RELEASE_TITLE: New Build
-
-on:
-  push:
-    branches: [ "Max" ]
-  workflow_dispatch:
-
-jobs:
-  build-and-release:
+jobs:    
+  build:
+    name: "Build"
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-          cache: 'gradle'
-
-      - name: Set Gradle Wrapper executable permissions
-        run: chmod +x ./gradlew
-
-      - name: Build APK Release
-        run: ./gradlew :${{ env.PROJECT_MODULE }}:assembleRelease
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TKT }}
-        with:
-          tag_name: v${{ github.run_number }}
-          release_name: ${{ env.new }} - ${{ github.run_number }}
-          draft: false
-          prerelease: false
-
-      - name: Upload APK to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TKT }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.PROJECT_MODULE }}/build/outputs/apk/release/*.apk
-          asset_name: app-release.apk
-          asset_content_type: application/vnd.android.package-archive
+    - uses: actions/checkout@v3
+    - uses: gradle/wrapper-validation-action@v1
+    - uses: actions/setup-java@v2
+      with:
+        java-version: '17'
+        distribution: 'adopt'
+        
+    - run: chmod +x gradlew
+    - run: ./gradlew build
