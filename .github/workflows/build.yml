@@ -1,4 +1,4 @@
-name: Android Build and Release
+name: Android Build, Sign, and Release
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  build:
+  build_and_release:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,6 +19,11 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 17
+
+      - name: Install Android SDK
+        uses: android-sdk/setup-android@v2
+        with:
+          components: build-tools-30.0.3
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -36,30 +41,15 @@ jobs:
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE_PATH -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD app/build/outputs/apk/release/app-release-unsigned.apk $KEY_ALIAS
           zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/app-release.apk
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v2
         with:
           name: app-release.apk
           path: app/build/outputs/apk/release/app-release.apk
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Send APK to Telegram
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          tag_name: v1.0.0  # Replace with your tag name if necessary
-          release_name: Release v1.0.0  # Replace with your release name
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: app/build/outputs/apk/release/app-release.apk
-          asset_name: app-release-v1.0.0.apk  # Replace with your desired asset name
-          asset_content_type: application/vnd.android.package-archive
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: '5309141960'
+        run: |
+          curl -F chat_id=$TELEGRAM_CHAT_ID -F document=@app/build/outputs/apk/release/app-release.apk https://api.telegram.org/bot5755715973:$TELEGRAM_BOT_TOKEN/sendDocument
