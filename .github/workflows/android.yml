@@ -5,7 +5,7 @@ env:
   RELEASE_TITLE: New Build
 
 on:
-  push: [ "Max" ]
+  push:
     branches: [ "Max" ]
   workflow_dispatch:
 
