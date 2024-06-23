@@ -3,7 +3,7 @@ name: Build and Publish APK
 on:
   push:
     branches: [ "Max" ]
-      - main  # Replace with your branch name
+   
   workflow_dispatch:
 
 jobs:
