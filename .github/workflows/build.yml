@@ -11,13 +11,16 @@ jobs:
    steps:
      – name: Checkout
        uses: actions/checkout@v4
+       
      – name: Setup JDK
        uses: actions/setup-java@v4
        with:
          distribution: ‘zulu’
-         java-version: ’11’
+         java-version: ’17’
          cache: 'gradle'
+         
      – name: Set execution flag for gradlew
        run: chmod +x gradlew
+       
      – name: Build with Gradle
        run: ./gradlew build
