@@ -1,5 +1,6 @@
-name: Publish Release APK
-
+              - name: Build and Publish release APK from your Android project
+                uses: alsrb968/action-release-apk@1.0.0
+            
 on:
   push:
     tags: [ "*" ]
