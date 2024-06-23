@@ -1,4 +1,4 @@
-name: Android Build, Sign, and Release
+name: Android Build and Release
 
 on:
   push:
@@ -20,34 +20,13 @@ jobs:
           distribution: 'zulu'
           java-version: 17
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y openjdk-17-jdk unzip
-
-      - name: Download and install Android SDK command-line tools
-        run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          cd $HOME/android-sdk/cmdline-tools
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip -O tools.zip
-          unzip -q tools.zip
-          mv cmdline-tools latest
-          export ANDROID_SDK_ROOT=$HOME/android-sdk
-          export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
-
-      - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses
-
-      - name: Install build tools and platform tools
-        run: sdkmanager "platform-tools" "build-tools;30.0.3"
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build with Gradle
         run: ./gradlew assembleRelease
 
-      - name: Sign APK
+      - name: Sign and Align APK
         env:
           KEYSTORE_PATH: ${{ secrets.KEYSTORE_PATH }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -55,7 +34,9 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE_PATH -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD app/build/outputs/apk/release/app-release-unsigned.apk $KEY_ALIAS
-          zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/app-release.apk
+
+          # Zipalign is no longer required for modern versions of Android Gradle Plugin
+          # It automatically aligns the APK during the build process
 
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v2
