@@ -1,7 +1,7 @@
 name: Build and Publish APK
 
 env:
-  main_project_module: app
+  PROJECT_MODULE: app
   RELEASE_TITLE: New Build
 
 on:
@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -27,23 +28,25 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build APK Release
-        run: ./gradlew assembleRelease
+        run: ./gradlew ${{ env.app }}:assembleRelease
 
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TKT }}
         with:
           tag_name: v${{ github.run_number }}
-          release_name: ${{ env.RELEASE_TITLE }} - ${{ github.run_number }}
+          release_name: ${{ env.newBuild }} - ${{ github.run_number }}
           draft: false
           prerelease: false
-          token: ${{ secrets.TKT }}
 
       - name: Upload APK to Release
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TKT }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.main_project_module }}/build/outputs/apk/release/*.apk
+          asset_path: ${{ env.app }}/build/outputs/apk/release/*.apk
           asset_name: app-release.apk
           asset_content_type: application/vnd.android.package-archive
-          token: ${{ secrets.GITHUB_TOKEN }}
