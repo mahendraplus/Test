@@ -28,7 +28,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build APK Release
-        run: ./gradlew :${{ "app" }}:assembleRelease
+        run: ./gradlew :${{ env.PROJECT_MODULE }}:assembleRelease
 
       - name: Create GitHub Release
         id: create_release
@@ -44,7 +44,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: `v${{ github.run_number }}`,
-              name: `${{ "new" }} - v${{ github.run_number }}`,
+              name: `${{ env.RELEASE_TITLE }} - v${{ github.run_number }}`,
               draft: false,
               prerelease: false,
             });
@@ -79,4 +79,4 @@ jobs:
             });
         env:
           TKT: ${{ secrets.TKT }}
-          PROJECT_MODULE: ${{ "app" }}
+          PROJECT_MODULE: ${{ env.PROJECT_MODULE }}
