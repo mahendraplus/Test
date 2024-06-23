@@ -1,7 +1,6 @@
 name: Build and Publish APK
 
 env:
-  GITHUB_TOKEN: ${{ secrets.TOKEN }}
   main_project_module: app
   RELEASE_TITLE: New Build
 
@@ -33,20 +32,18 @@ jobs:
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           tag_name: v${{ github.run_number }}
           release_name: ${{ env.RELEASE_TITLE }} - ${{ github.run_number }}
           draft: false
           prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload APK to Release
         uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ env.main_project_module }}/build/outputs/apk/release/*.apk
           asset_name: app-release.apk
           asset_content_type: application/vnd.android.package-archive
+          token: ${{ secrets.GITHUB_TOKEN }}
