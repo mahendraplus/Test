@@ -1,12 +1,9 @@
 name: Build and Publish APK
 
-env:
-  PROJECT_MODULE: app
-  RELEASE_TITLE: New Build
-
 on:
   push:
     branches: [ "Max" ]
+      - main  # Replace with your branch name
   workflow_dispatch:
 
 jobs:
@@ -15,68 +12,37 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v2
         with:
-          distribution: 'zulu'
-          java-version: '17'
-          cache: 'gradle'
-
-      - name: Set Gradle Wrapper executable permissions
-        run: chmod +x ./gradlew
+          java-version: '17'  # Adjust the Java version as needed
 
       - name: Build APK Release
-        run: ./gradlew :${{ env.PROJECT_MODULE }}:assembleRelease
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.TKT }}
-          script: |
-            const { context, github, core } = require('@actions/github');
-
-            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
-
-            const { data: release } = await octokit.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: `v${{ github.run_number }}`,
-              name: `${{ env.RELEASE_TITLE }} - v${{ github.run_number }}`,
-              draft: false,
-              prerelease: false,
-            });
-
-            core.setOutput('upload_url', release.upload_url);
-
-      - name: Upload APK to Release
-        id: upload_release_asset
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.TKT }}
-          script: |
-            const { context, github, core } = require('@actions/github');
-            const fs = require('fs');
-            const path = require('path');
-
-            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
-
-            const upload_url = core.getInput('upload_url', { required: true });
-            const apkPath = path.join(process.env.PROJECT_MODULE, 'build/outputs/apk/release/app-release.apk');
-            const content = fs.readFileSync(apkPath);
-
-            await octokit.rest.repos.uploadReleaseAsset({
-              url: upload_url,
-              headers: {
-                'content-length': content.length,
-                'content-type': 'application/vnd.android.package-archive',
-              },
-              name: 'app-release.apk',
-              data: content,
-            });
-
+      - name: Upload APK to GitHub Release
         env:
-          TKT: ${{ secrets.TKT }}
-          PROJECT_MODULE: ${{ env.PROJECT_MODULE }}
+          GITHUB_TOKEN: ${{ secrets.TKT }}
+        run: |
+          apkPath="app/build/outputs/apk/release/app-release.apk"
+          tagName="v${{ github.run_number }}"
+          releaseTitle="New Build - ${tagName}"
+
+          # Create a release
+          uploadUrl=$(curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/releases \
+            -d "{\"tag_name\":\"$tagName\",\"name\":\"$releaseTitle\",\"draft\":false,\"prerelease\":false}" | jq -r '.upload_url')
+
+          # Upload APK file
+          curl -s -X POST \
+            -H "Authorization: token $TKT" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/vnd.android.package-archive" \
+            --data-binary @$apkPath \
+            "$uploadUrl?name=$(basename $apkPath)"
