@@ -35,12 +35,12 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const { Octokit } = require("@octokit/rest");
-            const octokit = new Octokit({
-              auth: process.env.TKT,
-            });
+            const github = require('@actions/github');
+            const core = require('@actions/core');
 
-            const release = await octokit.repos.createRelease({
+            const octokit = github.getOctokit(process.env.TKT);
+
+            const { data: release } = await octokit.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: `v${{ github.run_number }}`,
@@ -49,7 +49,7 @@ jobs:
               prerelease: false,
             });
 
-            core.setOutput('upload_url', release.data.upload_url);
+            core.setOutput('upload_url', release.upload_url);
         env:
           TKT: ${{ secrets.TKT }}
 
@@ -57,25 +57,25 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const { Octokit } = require("@octokit/rest");
-            const octokit = new Octokit({
-              auth: process.env.TKT,
-            });
-
+            const github = require('@actions/github');
+            const core = require('@actions/core');
             const fs = require('fs');
             const path = require('path');
+
+            const octokit = github.getOctokit(process.env.TKT);
+
             const upload_url = core.getInput('upload_url', { required: true });
             const apkPath = path.join(process.env.PROJECT_MODULE, 'build/outputs/apk/release/app-release.apk');
             const content = fs.readFileSync(apkPath);
 
-            await octokit.repos.uploadReleaseAsset({
+            await octokit.rest.repos.uploadReleaseAsset({
               url: upload_url,
               headers: {
                 'content-length': content.length,
                 'content-type': 'application/vnd.android.package-archive',
               },
               name: 'app-release.apk',
-              file: content,
+              data: content,
             });
         env:
           TKT: ${{ secrets.TKT }}
