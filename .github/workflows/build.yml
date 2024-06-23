@@ -20,10 +20,16 @@ jobs:
           distribution: 'zulu'
           java-version: 17
 
-      - name: Install Android SDK
-        uses: android-sdk/setup-android@v2
-        with:
-          components: build-tools-30.0.3
+      - name: Install Android SDK tools
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y openjdk-17-jdk
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip -O android-sdk-tools.zip
+          unzip -q android-sdk-tools.zip -d $HOME/android-sdk
+          export ANDROID_SDK_ROOT=$HOME/android-sdk
+          export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/bin
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platform-tools" "build-tools;30.0.3"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -49,7 +55,8 @@ jobs:
 
       - name: Send APK to Telegram
         env:
+          TELEGRAM_BOT_ID: ${{ secrets.TELEGRAM_BOT_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: '5309141960'
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          curl -F chat_id=$TELEGRAM_CHAT_ID -F document=@app/build/outputs/apk/release/app-release.apk https://api.telegram.org/bot5755715973:$TELEGRAM_BOT_TOKEN/sendDocument
+          curl -F chat_id=$TELEGRAM_CHAT_ID -F document=@app/build/outputs/apk/release/app-release.apk https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_ID }}:${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
