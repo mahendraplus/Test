@@ -11,6 +11,12 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
+    compileOptions {
+        sourceCompactibility 1.8
+        targetCompactibility 1.8
+    }
+    
     buildTypes {
         release {
             minifyEnabled false
