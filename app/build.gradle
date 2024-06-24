@@ -4,21 +4,20 @@ plugins {
 }
 
 android {
-    namespace 'com.example.max'
-    compileSdk 34
-
+    compileSdkVersion 34
     defaultConfig {
         applicationId "com.example.max"
-        minSdk 21
-        targetSdk 34
+        minSdkVersion 21
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary true
-        }
     }
+    ...
+    aaptOptions {
+        noCompress "resources.arsc"
+    }
+}
 
     buildTypes {
         release {
