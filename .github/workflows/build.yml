@@ -32,16 +32,7 @@ jobs:
       - name: Install build-tools
         run: sdkmanager "build-tools;30.0.3"
 
-      - name: Sign APK with jarsigner
-        env:
-          KEYSTORE_PATH: ${{ secrets.KEYSTORE_PATH }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE_PATH -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD app/build/outputs/apk/release/app-release-unsigned.apk $KEY_ALIAS
-
-      - name: Sign APK with apksigner
+      - name: Sign APK
         env:
           KEYSTORE_PATH: ${{ secrets.KEYSTORE_PATH }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -50,11 +41,6 @@ jobs:
         run: |
           $ANDROID_SDK_ROOT/build-tools/30.0.3/apksigner sign --ks $KEYSTORE_PATH --ks-key-alias $KEY_ALIAS --ks-pass pass:$KEYSTORE_PASSWORD --key-pass pass:$KEY_PASSWORD --out app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/app-release-unsigned.apk
 
-      - name: Upload APK as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: app-release.apk
-          path: app/build/outputs/apk/release/app-release.apk
 
       - name: Send APK to Telegram
         env:
