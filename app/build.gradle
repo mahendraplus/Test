@@ -4,6 +4,7 @@ plugins {
 }
 
 android {
+    namespace 'com.example.max'
     compileSdkVersion 34
     defaultConfig {
         applicationId "com.example.max"
