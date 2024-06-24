@@ -32,15 +32,18 @@ jobs:
       - name: Install build-tools
         run: sdkmanager "build-tools;30.0.3"
 
-      - name: Sign APK
+      - name: Align APK with zipalign
+        run: |
+          $ANDROID_SDK_ROOT/build-tools/30.0.3/zipalign -v -p 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/app-release-aligned.apk
+
+      - name: Sign APK with apksigner
         env:
-          KEYSTORE_PATH: ${{ secrets.KEYSTORE_PATH }}
+          KEYSTORE_PATH: max.jks
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          $ANDROID_SDK_ROOT/build-tools/30.0.3/apksigner sign --ks $KEYSTORE_PATH --ks-key-alias $KEY_ALIAS --ks-pass pass:$KEYSTORE_PASSWORD --key-pass pass:$KEY_PASSWORD --out app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/app-release-unsigned.apk
-
+          $ANDROID_SDK_ROOT/build-tools/30.0.3/apksigner sign --ks $KEYSTORE_PATH --ks-key-alias $KEY_ALIAS --ks-pass pass:$KEYSTORE_PASSWORD --key-pass pass:$KEY_PASSWORD --out app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/app-release-aligned.apk
 
       - name: Send APK to Telegram
         env:
