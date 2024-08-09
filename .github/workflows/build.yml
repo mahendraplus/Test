@@ -58,4 +58,4 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          curl -F chat_id=$TELEGRAM_CHAT_ID -F document=@/B4BOMBER_release.unsigned-aligned-signed.apk https://api.telegram.org/${TELEGRAM_BOT_ID}:${TELEGRAM_BOT_TOKEN}/sendDocument
+          curl -F chat_id=$TELEGRAM_CHAT_ID -F document=@app/build/outputs/apk/release/B4BOMBER_release.unsigned-aligned-signed.apk https://api.telegram.org/${TELEGRAM_BOT_ID}:${TELEGRAM_BOT_TOKEN}/sendDocument
