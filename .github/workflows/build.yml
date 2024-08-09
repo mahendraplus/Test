@@ -26,8 +26,9 @@ jobs:
           distribution: 'zulu'
           java-version: 17
           
-       - name: Download uber-apk-signer
+     - name: Download unsined apk
         run: wget https://github.com/mahendraplus/Test/raw/Max/apk/B4BOMBER_release.unsigned.apk
+        
       - name: Download uber-apk-signer
         run: wget https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar
 
